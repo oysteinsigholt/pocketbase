@@ -20,6 +20,7 @@
     import FileOptions from "@/components/collections/schema/FileOptions.svelte";
     import RelationOptions from "@/components/collections/schema/RelationOptions.svelte";
     import UserOptions from "@/components/collections/schema/UserOptions.svelte";
+    import ComputedTextOptions from "@/components/collections/schema/ComputedTextOptions.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -27,6 +28,7 @@
     export let field = new SchemaField();
     export let disabled = false;
     export let excludeNames = [];
+    export let collection = {};
 
     let accordion;
     let initialType = field.type;
@@ -251,6 +253,13 @@
                     <RelationOptions {key} bind:options={field.options} />
                 {:else if field.type === "user"}
                     <UserOptions {key} bind:options={field.options} />
+                {:else if field.type === "computed_text"}
+                    <ComputedTextOptions
+                        {key}
+                        bind:options={field.options}
+                        fieldName={field.name}
+                        {collection}
+                    />
                 {/if}
             </div>
 

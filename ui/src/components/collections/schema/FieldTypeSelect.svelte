@@ -63,6 +63,11 @@
             value: "user",
             icon: CommonHelper.getFieldTypeIcon("user"),
         },
+        {
+            label: "Computed Text",
+            value: "computed_text",
+            icon: CommonHelper.getFieldTypeIcon("computed_text"),
+        },
     ];
 </script>
 

@@ -76,7 +76,12 @@ func NewRecordUpsertWithConfig(config RecordUpsertConfig, record *models.Record)
 
 	form.Data = map[string]any{}
 	for _, field := range record.Collection().Schema.Fields() {
-		form.Data[field.Name] = record.GetDataValue(field.Name)
+
+		// ignore attempts to upsert computed fields
+		if field.Type != schema.FieldTypeComputedText {
+			form.Data[field.Name] = record.GetDataValue(field.Name)
+		}
+
 	}
 
 	return form
@@ -186,7 +191,9 @@ func (form *RecordUpsert) LoadData(r *http.Request) error {
 		value := extendedData[key]
 		value = field.PrepareValue(value)
 
-		if field.Type != schema.FieldTypeFile {
+		if field.Type == schema.FieldTypeComputedText {
+			continue
+		} else if field.Type != schema.FieldTypeFile {
 			form.Data[key] = value
 			continue
 		}

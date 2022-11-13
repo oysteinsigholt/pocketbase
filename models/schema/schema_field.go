@@ -33,17 +33,18 @@ func ReservedFieldNames() []string {
 
 // All valid field types
 const (
-	FieldTypeText     string = "text"
-	FieldTypeNumber   string = "number"
-	FieldTypeBool     string = "bool"
-	FieldTypeEmail    string = "email"
-	FieldTypeUrl      string = "url"
-	FieldTypeDate     string = "date"
-	FieldTypeSelect   string = "select"
-	FieldTypeJson     string = "json"
-	FieldTypeFile     string = "file"
-	FieldTypeRelation string = "relation"
-	FieldTypeUser     string = "user"
+	FieldTypeText         string = "text"
+	FieldTypeNumber       string = "number"
+	FieldTypeBool         string = "bool"
+	FieldTypeEmail        string = "email"
+	FieldTypeUrl          string = "url"
+	FieldTypeDate         string = "date"
+	FieldTypeSelect       string = "select"
+	FieldTypeJson         string = "json"
+	FieldTypeFile         string = "file"
+	FieldTypeRelation     string = "relation"
+	FieldTypeUser         string = "user"
+	FieldTypeComputedText string = "computed_text"
 )
 
 // FieldTypes returns slice with all supported field types.
@@ -60,6 +61,7 @@ func FieldTypes() []string {
 		FieldTypeFile,
 		FieldTypeRelation,
 		FieldTypeUser,
+		FieldTypeComputedText,
 	}
 }
 
@@ -93,6 +95,9 @@ func (f *SchemaField) ColDefinition() string {
 		return "Boolean DEFAULT FALSE"
 	case FieldTypeJson:
 		return "JSON DEFAULT NULL"
+	case FieldTypeComputedText:
+		options, _ := f.Options.(*ComputedTextOptions)
+		return "TEXT GENERATED ALWAYS AS (" + options.Clause + ") VIRTUAL"
 	default:
 		return "TEXT DEFAULT ''"
 	}
@@ -200,6 +205,8 @@ func (f *SchemaField) InitOptions() error {
 		options = &RelationOptions{}
 	case FieldTypeUser:
 		options = &UserOptions{}
+	case FieldTypeComputedText:
+		options = &ComputedTextOptions{}
 	default:
 		return errors.New("Missing or unknown field field type.")
 	}
@@ -491,5 +498,17 @@ type UserOptions struct {
 func (o UserOptions) Validate() error {
 	return validation.ValidateStruct(&o,
 		validation.Field(&o.MaxSelect, validation.Required, validation.Min(1)),
+	)
+}
+
+// -------------------------------------------------------------------
+
+type ComputedTextOptions struct {
+	Clause string `form:"clause" json:"clause"`
+}
+
+func (o ComputedTextOptions) Validate() error {
+	return validation.ValidateStruct(&o,
+		validation.Field(&o.Clause, validation.Required),
 	)
 }

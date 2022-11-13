@@ -22,7 +22,7 @@ func TestReservedFieldNames(t *testing.T) {
 func TestFieldTypes(t *testing.T) {
 	result := schema.FieldTypes()
 
-	if len(result) != 11 {
+	if len(result) != 12 {
 		t.Fatalf("Expected %d types, got %d (%v)", 3, len(result), result)
 	}
 }
@@ -38,51 +38,68 @@ func TestArraybleFieldTypes(t *testing.T) {
 func TestSchemaFieldColDefinition(t *testing.T) {
 	scenarios := []struct {
 		field    schema.SchemaField
+		options  any
 		expected string
 	}{
 		{
 			schema.SchemaField{Type: schema.FieldTypeText, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeNumber, Name: "test"},
+			nil,
 			"REAL DEFAULT 0",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeBool, Name: "test"},
+			nil,
 			"Boolean DEFAULT FALSE",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeEmail, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeUrl, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeDate, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeSelect, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeJson, Name: "test"},
+			nil,
 			"JSON DEFAULT NULL",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeFile, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeRelation, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
 		},
 		{
 			schema.SchemaField{Type: schema.FieldTypeUser, Name: "test"},
+			nil,
 			"TEXT DEFAULT ''",
+		},
+		{
+			schema.SchemaField{Type: schema.FieldTypeComputedText, Name: "test"},
+			schema.ComputedTextOptions{Clause: "first_name || ' ' || last_name"},
+			"TEXT GENERATED ALWAYS AS (first_name || ' ' || last_name) VIRTUAL",
 		},
 	}
 
@@ -850,6 +867,27 @@ func TestSchemaFieldPrepareValue(t *testing.T) {
 		if string(encoded) != s.expectJson {
 			t.Errorf("(%d), Expected %v, got %v", i, s.expectJson, string(encoded))
 		}
+	}
+}
+
+func TestSchemaFieldComputedText(t *testing.T) {
+	f := schema.SchemaField{
+		Id:       "abc",
+		Name:     "test",
+		Type:     schema.FieldTypeComputedText,
+		Required: true,
+		Unique:   false,
+		System:   false,
+		Options: &schema.ComputedTextOptions{
+			Clause: "first_name || ' ' || last_name",
+		},
+	}
+
+	result := f.String()
+	expected := `{"system":false,"id":"abc","name":"test","type":"computed_text","required":true,"unique":false,"options":{"clause":"first_name || ' ' || last_name"}}`
+
+	if result != expected {
+		t.Errorf("Expected \n%v, got \n%v", expected, result)
 	}
 }
 

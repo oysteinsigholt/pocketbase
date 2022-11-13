@@ -76,6 +76,7 @@ func (dao *Dao) FindRecordsByIds(
 // If no records are found, returns an empty slice.
 //
 // Example:
+//
 //	expr := dbx.HashExp{"email": "test@example.com"}
 //	dao.FindRecordsByExpr(collection, expr)
 func (dao *Dao) FindRecordsByExpr(collection *models.Collection, expr dbx.Expression) ([]*models.Record, error) {
@@ -330,6 +331,36 @@ func (dao *Dao) SyncRecordTableSchema(newCollection *models.Collection, oldColle
 			_, err := txDao.DB().DropColumn(newTableName, oldField.Name).Execute()
 			if err != nil {
 				return err
+			}
+		}
+
+		// check for changed generated column definition
+		for _, field := range newSchema.Fields() {
+			if field.Type == schema.FieldTypeComputedText {
+				oldField := oldSchema.GetFieldById(field.Id)
+
+				if oldField != nil && field.ColDefinition() != oldField.ColDefinition() {
+					tempName := field.Name + security.RandomString(5)
+
+					// add temp column
+					_, err := txDao.DB().AddColumn(newTableName, tempName, field.ColDefinition()).Execute()
+
+					if err != nil {
+						return err
+					}
+
+					// drop old column
+					_, err = txDao.DB().DropColumn(newTableName, oldField.Name).Execute()
+					if err != nil {
+						return err
+					}
+
+					// rename temp column
+					_, err = txDao.DB().RenameColumn(newTableName, tempName, oldField.Name).Execute()
+					if err != nil {
+						return err
+					}
+				}
 			}
 		}
 

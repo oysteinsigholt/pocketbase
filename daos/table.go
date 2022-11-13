@@ -22,7 +22,7 @@ func (dao *Dao) HasTable(tableName string) bool {
 func (dao *Dao) GetTableColumns(tableName string) ([]string, error) {
 	columns := []string{}
 
-	err := dao.DB().NewQuery("SELECT name FROM PRAGMA_TABLE_INFO({:tableName})").
+	err := dao.DB().NewQuery("SELECT name FROM PRAGMA_TABLE_XINFO({:tableName})").
 		Bind(dbx.Params{"tableName": tableName}).
 		Column(&columns)
 

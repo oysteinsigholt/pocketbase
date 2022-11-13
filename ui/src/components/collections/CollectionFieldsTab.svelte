@@ -66,6 +66,7 @@
             bind:field
             key={i}
             excludeNames={reservedNames.concat(getSiblingsFieldNames(field))}
+            {collection}
             on:remove={() => removeField(i)}
         />
     {/each}
